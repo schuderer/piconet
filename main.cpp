@@ -23,7 +23,7 @@ auto w12_2 = Value(0.8);  // weight for incoming connection o2_2
 
 
 void init_net() {
-    RandomDistribution<double> rng;
+    RandomUniformDistribution<double> rng;
     w11_1 = rng.get();
     w12_1 = rng.get();
     w21_1 = rng.get();
@@ -82,6 +82,9 @@ T net_forward(T x1, T x2, T y) {
 
 
 int main() {
+
+    LOG(" ----------- try out NN library ----------- ");
+
 //{
 //    RandomDistribution rng;
 //    Layer<double, 2, 2> l1{rng};
@@ -116,7 +119,7 @@ int main() {
 
     const size_t input_len = 2;
 
-    RandomDistribution<double> rng;
+    RandomUniformDistribution<double> rng;
     Layer<double, input_len, 2> l1{rng};
     Layer<double, 2, 1> l2{rng, Activation::sigmoid};
     double alpha = 0.1;
@@ -129,7 +132,7 @@ int main() {
     }};
 
     //    auto input = std::array<Value<double>, 2>{1.0, 1.0};
-    for (int var = 0; var < 10000; ++var) {
+    for (int var = 0; var < 10; ++var) {
         double loss_sum{0.0};
         for (std::span input_and_y : inputs) {
             std::span<Value<double>, 2> input = input_and_y.subspan<0, 2>();
@@ -158,8 +161,7 @@ int main() {
     }
 
 
-
-    LOG(" ----------- ");
+    LOG(" ----------- try out hand-knitted NN calculations ----------- ");
     init_net();
     for (int epoch = 0; epoch < 10; ++epoch) {
         double loss_sum{0.0};

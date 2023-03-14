@@ -8,6 +8,7 @@
 #include <functional>
 #include <ranges>
 #include <random>
+#include <concepts>
 
 #include <picograd/value.h>
 
@@ -23,21 +24,45 @@
 
 namespace ajs {
 
-// Generate uniform or normal distribution of type T
+// Base class for random distributions
 template<typename T>
 class RandomDistribution {
 public:
     // Create random distribution
-    RandomDistribution(uint32_t seed_val=42, bool normal=false);
+    RandomDistribution(uint32_t seed_val=42);
 
     // Sample a value of the random distribution
-    double get();
-private:
+    virtual T get() = 0;
+protected:
     std::mt19937 generator_;
-    bool normal_;
+};
+
+// Generate uniform distribution of type T
+template<std::floating_point T>
+class RandomUniformDistribution: public RandomDistribution<T> {
+public:
+    // Inherit all constructors
+    using RandomDistribution<T>::RandomDistribution;
+
+    // Sample a value of the random distribution
+    T get() override;
+private:
     std::uniform_real_distribution<T> uni_dist_{-1.0, 1.0};
+};
+
+// Generate normal distribution of type T
+template<typename T>
+class RandomNormalDistribution: public RandomDistribution<T> {
+public:
+    // Inherit all constructors
+    using RandomDistribution<T>::RandomDistribution;
+
+    // Sample a value of the random distribution
+    T get() override;
+private:
     std::normal_distribution<T> normal_dist_{0.0, 1.0};
 };
+
 
 // Options for nonlinear activations
 enum class Activation {
@@ -65,7 +90,7 @@ private:
     std::array<Value<T>, NumInputs * NumOutputs> weights_;
     std::array<Value<T>, NumOutputs> biases_;
     std::array<Value<T>, NumInputs * NumOutputs + NumOutputs> parameters_;  // view to values in weights_ and biases_
-    Value<T> (Value<T>::*activation_func_ptr)() const;
+    Value<T> (Value<T>::*activation_func_ptr)() const {nullptr};
 };
 
 // Ensure that values are probabilities (between 0 and 1, summing to 1),

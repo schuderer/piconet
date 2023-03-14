@@ -8,14 +8,22 @@ namespace ajs {
 
 // Generate uniform or normal distribution of type T
 template<typename T>
-RandomDistribution<T>::RandomDistribution(uint32_t seed_val, bool normal): normal_{normal} {
+RandomDistribution<T>::RandomDistribution(uint32_t seed_val) {
     generator_.seed(seed_val);
 }
 
-// Sample a value of the random distribution
+// Sample a value of the uniform random distribution
+template<std::floating_point T>
+inline
+T RandomUniformDistribution<T>::get() {
+    return uni_dist_(this->generator_);
+}
+
+// Sample a value of the normal random distribution
 template<typename T>
-double RandomDistribution<T>::get() {
-    return normal_ ? normal_dist_(generator_) : uni_dist_(generator_);
+inline
+T RandomNormalDistribution<T>::get() {
+    return normal_dist_(this->generator_);
 }
 
 
@@ -81,6 +89,7 @@ std::array<Value<T>, NumOutputs> Layer<T, NumInputs, NumOutputs>::operator()(con
 
 // Retrieve modifiable references to all weights and biases
 template<typename T, size_t NumInputs, size_t NumOutputs>
+inline
 auto& Layer<T, NumInputs, NumOutputs>::get_parameters() {
     // TODO: if they are non-const references, i.e. accessible from outside, why not just make parameters_ public?
     return parameters_;
@@ -133,10 +142,11 @@ Container softmax(const Container& input) {
 }
 
 
-// Calculate cross-entropy loss (negative log-likelihood) from probabilities
+// Calculate cross-entropy loss (negative log-likelihood) from probabilities.
+// Scales the values with N
 template<typename Container>  // TODO: use has_size/indexable trait?
 typename Container::value_type cross_entropy(const Container& prediction, const Container& target) {
-    assert(prediction.size() == target.size() && "cross_entropy expects containers of equal length");
+//    assert(prediction.size() == target.size() + 1 && "cross_entropy expects containers of equal length");  // not needed -- container type ensures this
     using ValT = typename Container::value_type;
     ValT result{0};
     for (size_t i=0; i<prediction.size(); ++i) {
@@ -148,10 +158,11 @@ typename Container::value_type cross_entropy(const Container& prediction, const 
 // Calculate cross-entropy loss (negative log-likelihood) from logits ("log-transformed probabilities"
 // - usually just raw output that can be negative; we just interpret the raw output as logits, which has
 // advantages for scaling/numeric stability as well)
+// Scales the values with N
 template<typename Container>  // TODO: use has_size/indexable trait?
 typename Container::value_type cross_entropy_with_logits(const Container& prediction, const Container& target) {
     using ValT = typename Container::value_type;
-    assert(prediction.size() == target.size() && "cross_entropy_with_logits expects containers of equal length");
+//    assert(prediction.size() == target.size() && "cross_entropy_with_logits expects containers of equal length");
 
     // Prepare sum of exponents
     ValT sum_exps{0};
@@ -164,7 +175,7 @@ typename Container::value_type cross_entropy_with_logits(const Container& predic
     ValT result{0};
     for (size_t i=0; i<prediction.size(); ++i) {
         result += target[i] * (prediction[i] - sum_exps.log()) ;
-    //       result += target[i] * (prediction[i].exp() / sum_exps).log();
+//           result += target[i] * (prediction[i].exp() / sum_exps).log();
     }
 return -result/target.size();
 }
