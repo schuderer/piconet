@@ -17,16 +17,16 @@ include(GNUInstallDirs)
 
 
 # When picograd is stable, replace this:
-add_library(picograd INTERFACE)
-target_include_directories(picograd INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/../picograd/include/")
+#add_library(picograd INTERFACE)
+#target_include_directories(picograd INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/../picograd/include/")
 # ...with this:
 # https://medium.com/analytics-vidhya/c-dependency-management-with-cmakes-fetchcontent-4ceca4693a5d
-#include(FetchContent)
-#FetchContent_Declare(picograd
-#    GIT_REPOSITORY "https://github.com/schuderer/picograd"
-#    GIT_TAG "origin/lib_prep"  # or something like GIT_TAG "932a2ca50666138256dae56fbb16db3b1cae133a"
-#)
-#FetchContent_MakeAvailable(picograd)
+include(FetchContent)
+FetchContent_Declare(picograd
+    GIT_REPOSITORY "https://github.com/schuderer/picograd"
+    GIT_TAG "origin/lib_prep"  # or something like GIT_TAG "932a2ca50666138256dae56fbb16db3b1cae133a"
+)
+FetchContent_MakeAvailable(picograd)
 
 
 add_library(${PROJECT_NAME} INTERFACE)  # because of header-only library, otherwise STATIC/SHARED (I think)
